@@ -47,7 +47,7 @@ public class PdfInvoiceExtractor {
         }
         String allText = StringUtils.replace(fullText).replaceAll("（", "(").replaceAll("）", ")").replaceAll("￥", "¥");
         allText = allText.trim();
-        log.info("allText --> " + allText);
+
         if(allText.contains("电子发票") || allText.contains("电⼦发票")){
             log.info("全电票处理...");
             // 全票

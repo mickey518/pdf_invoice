@@ -44,6 +44,8 @@ public class Invoice2ExcelUtil {
             dateCell.setCellValue(invoiceVO.getDate());
             dateCell.setCellStyle(cellStyle);
 
+            cellStyle = workbook.createCellStyle();
+            cellStyle.setFont(font);
 
             // 填充表格数据
             int startRow = 4; // 数据起始行
@@ -55,12 +57,20 @@ public class Invoice2ExcelUtil {
                 sheet.shiftRows(14, 14 + size - 10, size - 10);
             }
 
+            // 添加边框样式
+            cellStyle.setBorderRight(BorderStyle.MEDIUM);
+            cellStyle.setRightBorderColor(IndexedColors.BLACK.getIndex());
+            cellStyle.setBorderLeft(BorderStyle.MEDIUM);
+            cellStyle.setLeftBorderColor(IndexedColors.BLACK.getIndex());
+            cellStyle.setBorderBottom(BorderStyle.MEDIUM);
+            cellStyle.setBottomBorderColor(IndexedColors.BLACK.getIndex());
+
             for (InvoiceDetailVO invoiceDetailVO : invoiceVO.getDetailList()) {
 
                 Row dataRow = sheet.getRow(currentRow);
                 if (dataRow == null) {
                     dataRow = sheet.createRow(currentRow);
-                    for (int i = 0; i < 8; i++) {
+                    for (int i = 0; i < 9; i++) {
                         dataRow.createCell(i);
                     }
                 }
@@ -88,6 +98,9 @@ public class Invoice2ExcelUtil {
                 // 金额小计
                 dataRow.getCell(7).setCellValue(invoiceDetailVO.getTotalAmount());
                 dataRow.getCell(7).setCellStyle(cellStyle);
+                // 备注
+                dataRow.getCell(8).setCellValue("");
+                dataRow.getCell(8).setCellStyle(cellStyle);
 
                 currentRow++;
             }

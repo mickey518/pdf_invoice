@@ -3,6 +3,7 @@ package lab.dragon.invoice.controller;
 import org.apache.commons.io.FileUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -30,12 +31,15 @@ import java.util.Date;
 public class InvoiceExtractController {
     private final Logger log = LoggerFactory.getLogger(InvoiceExtractController.class);
 
+    @Value("${invoice.folder.data}")
+    private String dataFolder;
+
     /**
      * @param file 上传的发票文件,支持pdf和ofd格式
      * @return InvoiceVO
      */
     @PostMapping("extract")
-    public InvoiceVO extrat(@RequestParam(value = "file", required = true) MultipartFile file) {
+    public InvoiceVO extract(@RequestParam(value = "file", required = true) MultipartFile file) {
         // 生成一个当前时间的文件名
         String fileName = DateUtil.getDateFormat(DateUtil.FILE_NAME_FORMAT_STRING).format(new Date());
         File dest = null;
@@ -43,9 +47,9 @@ public class InvoiceExtractController {
         if (null != file && !file.isEmpty()) {
             if (file.getOriginalFilename().toLowerCase().endsWith(".ofd")) {
                 ofd = true;
-                dest = new File(fileName + ".ofd");
+                dest = new File(Paths.get(dataFolder, fileName + ".ofd").toUri());
             } else {
-                dest = new File(fileName + ".pdf");
+                dest = new File(Paths.get(dataFolder, fileName + ".pdf").toUri());
             }
             if (Files.notExists(Paths.get(dest.getParentFile().getAbsolutePath()))) {
                 log.error("文件夹 {} 不存在", dest.getParentFile().getAbsolutePath());
@@ -67,8 +71,8 @@ public class InvoiceExtractController {
             if (null != dest) {
                 if (ofd) {//这里将ofd文件直接转为pdf做抽取
                     log.info("ofd处理...");
-                    Path ofdPath = Paths.get(fileName + ".ofd");
-                    Path pdfPath = Paths.get(fileName + ".pdf");
+                    Path ofdPath = Paths.get(dataFolder, fileName + ".ofd");
+                    Path pdfPath = Paths.get(dataFolder, fileName + ".pdf");
                     String pdfFilePath = OFDUtils.ofdtoPdf(ofdPath, pdfPath);
                     result = PdfInvoiceExtractor.extract(new File(pdfFilePath));
                     result.setMsgCode(200);
