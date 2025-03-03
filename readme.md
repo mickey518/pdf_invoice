@@ -30,7 +30,7 @@
         "sellerAddress": "天津经济技术开发区南港工业区综合服务区办公楼C座103室12单元022-59002850",
         "sellerAccount": "招商银行股份有限公司天津自由贸易试验区分行122905939910401",
         "type": "普通发票",
-        "detailList": [
+        "invoiceDetailList": [
             {
                 "name": "*运输服务*客运服务费 无",
                 "model": null,
@@ -68,7 +68,7 @@
         "sellerAddress": null,
         "sellerAccount": null,
         "type": "增值税专用发票",
-        "detailList": [
+        "invoiceDetailList": [
             {
                 "name": "*黑色金属冶炼压延品*直缝焊管",
                 "model": "60*3.5",

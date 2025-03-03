@@ -1,8 +1,3 @@
-import sy.service.Invoice;
-import sy.service.PdfInvoiceExtractor;
-
-import java.io.File;
-import java.io.IOException;
 import java.math.BigDecimal;
 
 
