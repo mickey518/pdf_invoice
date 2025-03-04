@@ -1,24 +1,22 @@
-package lab.dragon.invoice.utils;
+package lab.dragon.invoice.service;
 
-import org.apache.poi.ss.usermodel.*;
-import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import lab.dragon.invoice.VO.InvoiceDetailVO;
 import lab.dragon.invoice.VO.InvoiceVO;
+import org.apache.poi.ss.usermodel.*;
+import org.apache.poi.xssf.usermodel.XSSFWorkbook;
+import org.springframework.stereotype.Service;
 
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 
-public class Invoice2ExcelUtil {
+@Service
+public class ExcelService {
 
-    private Invoice2ExcelUtil() {
-        throw new UnsupportedOperationException("Utility class");
-    }
-
-    public static void writeInvoiceToExcel(InvoiceVO invoiceVO, String templatePath, String outputPath) throws IOException {
+    public void writeInvoiceToExcel(InvoiceVO invoiceVO, String templatePath, String outputPath) throws IOException {
         // 加载模板
         try (FileInputStream fileIn = new FileInputStream(templatePath);
-
+             FileOutputStream fileOut = new FileOutputStream(outputPath);
              Workbook workbook = new XSSFWorkbook(fileIn)) {
 
             // 获取第一个工作表
@@ -36,7 +34,7 @@ public class Invoice2ExcelUtil {
             // 填充项目名称及日期
             Row dateRow = sheet.getRow(1);
             Cell projectNameCell = dateRow.createCell(3);
-            projectNameCell.setCellValue("检测与控制技术研究中心");  // 根据实际需求设置项目名称
+            projectNameCell.setCellValue(invoiceVO.getBuyerName());  // 根据实际需求设置项目名称
             projectNameCell.setCellStyle(cellStyle);
 
             // 填充日期
@@ -116,9 +114,7 @@ public class Invoice2ExcelUtil {
             totalValueCell.setCellStyle(cellStyle);
 
             // 保存到文件
-            try (FileOutputStream fileOut = new FileOutputStream(outputPath)) {
-                workbook.write(fileOut);
-            }
+            workbook.write(fileOut);
         }
     }
 }
