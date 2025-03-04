@@ -1,5 +1,7 @@
 package lab.dragon.invoice.controller;
 
+import lab.dragon.invoice.VO.InvoiceDetailVO;
+import lab.dragon.invoice.utils.AmountToChinese;
 import org.apache.commons.io.FileUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -17,10 +19,13 @@ import lab.dragon.invoice.utils.OFDUtils;
 
 import java.io.File;
 import java.io.IOException;
+import java.math.BigDecimal;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 
 /**
  * 发票识别 API
@@ -35,68 +40,91 @@ public class InvoiceExtractController {
     private String dataFolder;
 
     /**
-     * @param file 上传的发票文件,支持pdf和ofd格式
+     * @param files 上传的发票文件数组
      * @return InvoiceVO
      */
     @PostMapping("extract")
-    public InvoiceVO extract(@RequestParam(value = "file", required = true) MultipartFile file) {
-        // 生成一个当前时间的文件名
-        String fileName = DateUtil.getDateFormat(DateUtil.FILE_NAME_FORMAT_STRING).format(new Date());
-        File dest = null;
-        boolean ofd = false;
-        if (null != file && !file.isEmpty()) {
-            if (file.getOriginalFilename().toLowerCase().endsWith(".ofd")) {
-                ofd = true;
-                dest = new File(Paths.get(dataFolder, fileName + ".ofd").toUri());
-            } else {
-                dest = new File(Paths.get(dataFolder, fileName + ".pdf").toUri());
-            }
-            if (Files.notExists(Paths.get(dest.getParentFile().getAbsolutePath()))) {
-                log.error("文件夹 {} 不存在", dest.getParentFile().getAbsolutePath());
-                boolean mkdirsed = dest.getParentFile().mkdirs();
-                if (!mkdirsed) {
-                    log.error("创建文件夹 {} 失败", dest.getParentFile().getAbsolutePath());
-                }
-            }
+    public InvoiceVO extract(@RequestParam(value = "files") MultipartFile[] files) {
 
-            // 复制文件到一个副本
-            try {
-                FileUtils.copyInputStreamToFile(file.getInputStream(), dest);
-            } catch (IOException e) {
-                log.error("[extract]复制文件失败", e);
-            }
-        }
-        Invoice result = null;
-        try {
-            if (null != dest) {
-                if (ofd) {//这里将ofd文件直接转为pdf做抽取
-                    log.info("ofd处理...");
-                    Path ofdPath = Paths.get(dataFolder, fileName + ".ofd");
-                    Path pdfPath = Paths.get(dataFolder, fileName + ".pdf");
-                    String pdfFilePath = OFDUtils.ofdtoPdf(ofdPath, pdfPath);
-                    result = PdfInvoiceExtractor.extract(new File(pdfFilePath));
-                    result.setMsgCode(200);
-                    result.setMsg("返回成功！");
+        InvoiceVO invoiceVO = new InvoiceVO();
+        List<InvoiceDetailVO> details = new ArrayList<>();
+        BigDecimal totalAmount = new BigDecimal("0.0");
+
+        for (int i = 0; i < files.length; i++) {
+            MultipartFile file = files[i];
+            // 生成一个当前时间的文件名
+            String fileName = DateUtil.getDateFormat(DateUtil.FILE_NAME_FORMAT_STRING).format(new Date());
+            File dest = null;
+            boolean ofd = false;
+            if (null != file && !file.isEmpty()) {
+                if (file.getOriginalFilename().toLowerCase().endsWith(".ofd")) {
+                    ofd = true;
+                    dest = new File(Paths.get(dataFolder, fileName + ".ofd").toUri());
                 } else {
-                    result = PdfInvoiceExtractor.extract(dest);
-                    result.setMsgCode(200);
-                    result.setMsg("返回成功！");
+                    dest = new File(Paths.get(dataFolder, fileName + ".pdf").toUri());
                 }
-                //不保存上传的文件，删除
+                if (Files.notExists(Paths.get(dest.getParentFile().getAbsolutePath()))) {
+                    log.error("文件夹 {} 不存在", dest.getParentFile().getAbsolutePath());
+                    boolean mkdirsed = dest.getParentFile().mkdirs();
+                    if (!mkdirsed) {
+                        log.error("创建文件夹 {} 失败", dest.getParentFile().getAbsolutePath());
+                    }
+                }
+
+                // 复制文件到一个副本
+                try {
+                    FileUtils.copyInputStreamToFile(file.getInputStream(), dest);
+                } catch (IOException e) {
+                    log.error("[extract]复制文件失败", e);
+                }
+            }
+            Invoice result = null;
+            try {
+                if (null != dest) {
+                    if (ofd) {//这里将ofd文件直接转为pdf做抽取
+                        log.info("ofd处理...");
+                        Path ofdPath = Paths.get(dataFolder, fileName + ".ofd");
+                        Path pdfPath = Paths.get(dataFolder, fileName + ".pdf");
+                        String pdfFilePath = OFDUtils.ofdtoPdf(ofdPath, pdfPath);
+                        result = PdfInvoiceExtractor.extract(new File(pdfFilePath));
+                        result.setMsgCode(200);
+                        result.setMsg("返回成功！");
+                    } else {
+                        result = PdfInvoiceExtractor.extract(dest);
+                        result.setMsgCode(200);
+                        result.setMsg("返回成功！");
+                    }
+                    //不保存上传的文件，删除
 //                if (null != result.getAmount()) {
 //                    dest.delete();
 //                }
-            } else {
+                } else {
+                    result = new Invoice();
+                    result.setMsgCode(500);
+                    result.setMsg("检测输入参数是否正确！");
+                }
+            } catch (IOException e) {
+                e.printStackTrace();
                 result = new Invoice();
                 result.setMsgCode(500);
                 result.setMsg("检测输入参数是否正确！");
             }
-        } catch (IOException e) {
-            e.printStackTrace();
-            result = new Invoice();
-            result.setMsgCode(500);
-            result.setMsg("检测输入参数是否正确！");
+
+            InvoiceVO convert2VO = result.convert2VO();
+            details.addAll(convert2VO.getDetailList());
+
+            invoiceVO.setDate(convert2VO.getDate());
+            totalAmount = totalAmount.add(result.getTotalAmount());
         }
-        return result.convert2VO();
+
+        for (int i = 0; i < details.size(); i++) {
+            details.get(i).setIndex(i + 1);
+        }
+
+        invoiceVO.setDetailList(details);
+        invoiceVO.setTotalAmount(totalAmount.toString());
+        invoiceVO.setTotalAmountString(AmountToChinese.numberToChinese(totalAmount.toString()));
+
+        return invoiceVO;
     }
 }

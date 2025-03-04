@@ -48,8 +48,8 @@ public class Invoice2ExcelUtil {
             cellStyle.setFont(font);
 
             // 填充表格数据
-            int startRow = 4; // 数据起始行
-            int currentRow = startRow;
+            // 数据起始行
+            int currentRow = 4;
 
             // 判断数据行数，如果超过 10 行，要先将下面的数据向下移动 size - 10 行
             int size = invoiceVO.getDetailList().size();

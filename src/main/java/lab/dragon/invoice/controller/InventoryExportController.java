@@ -31,14 +31,16 @@ public class InventoryExportController {
     private String exportUrl;
 
     @PostMapping("export")
-    public String exportInventory(@RequestBody InvoiceVO invoiceVO) {
+    public String[] exportInventory(@RequestBody InvoiceVO invoiceVO) {
+        String[] results = new String[3];
         String fileName = DateUtil.getDateFormat(DateUtil.FILE_NAME_FORMAT_STRING).format(new Date());
         String templatePath = Paths.get(templateFolder, "inventory_template.xlsx").toString();
         String outputPath = Paths.get(dataFolder, fileName + "-inventory" + ".xlsx").toString();
 
         try {
             Invoice2ExcelUtil.writeInvoiceToExcel(invoiceVO, templatePath, outputPath);
-            return exportUrl + outputPath;
+            results[0] = exportUrl + outputPath;
+            return results;
         } catch (IOException e) {
             log.error(e.getMessage(), e);
             return null;
