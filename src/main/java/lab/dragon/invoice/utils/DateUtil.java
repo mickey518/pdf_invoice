@@ -10,7 +10,7 @@ import java.util.Map;
 public class DateUtil {
 
     private static ThreadLocal<Map<String, DateFormat>> threadLocal = new ThreadLocal<>();
-    public static final String FILE_NAME_FORMAT_STRING = "yyyy/MM-dd-HH-mm-ssSSSS";
+    public static final String FILE_NAME_FORMAT_STRING = "yyyy/MMdd-HHmmss";
 
     /**
      * @param pattern

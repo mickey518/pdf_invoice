@@ -12,9 +12,11 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import java.io.IOException;
+import java.io.*;
 import java.nio.file.Paths;
 import java.util.Date;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipOutputStream;
 
 /**
  * @author mickey.wang
@@ -35,7 +37,7 @@ public class InvoiceExportController {
     private ExcelService excelService;
 
     @PostMapping("export")
-    public String[] export(@RequestBody InvoiceVO invoiceVO) {
+    public String export(@RequestBody InvoiceVO invoiceVO) {
         // 生成时间戳字符串
         String dateString = DateUtil.getDateFormat(DateUtil.FILE_NAME_FORMAT_STRING).format(new Date());
 
@@ -45,24 +47,57 @@ public class InvoiceExportController {
         };
         // 定义需要的 3 个模板文件类型
         String[] outputTypes = new String[] {
-                 "入库单（仓库联）-", "入库单（财务记账联）-", "出库单-"
+                 "入库单（仓库联）", "入库单（财务记账联）", "出库单"
         };
         String[] results = new String[templates.length];
 
         for (int i = 0; i < templates.length; i++) {
             try {
-                String outputName = Paths.get(dataFolder,  String.format("%s-%s.xlsx", outputTypes[i], dateString)).toString();
+                String outputName = Paths.get(dataFolder,  String.format("%s-%s.xlsx", dateString, outputTypes[i])).toString();
                 excelService.writeInvoiceToExcel(
                         invoiceVO,
                         Paths.get(templateFolder, templates[i]).toString(),
                         outputName);
-                results[i] = exportUrl + outputName;
+                results[i] = outputName;
             } catch (IOException e) {
                 log.error("无法写入文件：" + e.getMessage(), e);
                 results[i] = "";
             }
         }
 
-        return results;
+        String string = zipFiles(results);
+        return exportUrl + string;
+    }
+
+    private String zipFiles(String[] fileNames) {
+        String dateString = DateUtil.getDateFormat(DateUtil.FILE_NAME_FORMAT_STRING).format(new Date());
+
+        String zipFilePath = Paths.get(dataFolder,  dateString + "-发票识别导出.zip").toString();
+        try (FileOutputStream fos = new FileOutputStream(zipFilePath);
+             ZipOutputStream zos = new ZipOutputStream(fos)) {
+            for (String fileName : fileNames) {
+                File file = new File(fileName);
+                if (!file.exists()) {
+                    log.error("文件 {} 不存在，跳过压缩。", fileName);
+                    continue;
+                }
+
+                try (FileInputStream fis = new FileInputStream(file)) {
+                    ZipEntry zipEntry = new ZipEntry(file.getName());
+                    zos.putNextEntry(zipEntry);
+
+                    byte[] buffer = new byte[1024];
+                    int bytesRead;
+                    while ((bytesRead = fis.read(buffer)) != -1) {
+                        zos.write(buffer, 0, bytesRead);
+                    }
+                } catch (IOException e) {
+                    log.error("读取文件 {} 出错：{}", fileName, e.getMessage(), e);
+                }
+            }
+        } catch (IOException e) {
+            log.error("创建或写入 ZIP 文件出错：{}", e.getMessage(), e);
+        }
+        return zipFilePath;
     }
 }

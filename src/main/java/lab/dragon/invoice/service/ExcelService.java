@@ -1,17 +1,28 @@
 package lab.dragon.invoice.service;
 
-import lab.dragon.invoice.VO.InvoiceDetailVO;
-import lab.dragon.invoice.VO.InvoiceVO;
-import org.apache.poi.ss.usermodel.*;
-import org.apache.poi.xssf.usermodel.XSSFWorkbook;
-import org.springframework.stereotype.Service;
-
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import lab.dragon.invoice.VO.InvoiceDetailVO;
+import lab.dragon.invoice.VO.InvoiceVO;
+import org.apache.poi.ss.usermodel.BorderStyle;
+import org.apache.poi.ss.usermodel.Cell;
+import org.apache.poi.ss.usermodel.CellStyle;
+import org.apache.poi.ss.usermodel.Font;
+import org.apache.poi.ss.usermodel.IndexedColors;
+import org.apache.poi.ss.usermodel.Row;
+import org.apache.poi.ss.usermodel.Sheet;
+import org.apache.poi.ss.usermodel.Workbook;
+import org.apache.poi.xssf.usermodel.XSSFWorkbook;
+import org.springframework.stereotype.Service;
 
+/**
+ * Excel 处理服务类.
+ *
+ * @author mickey
+ */
 @Service
-public class ExcelService {
+public final class ExcelService {
 
     public void writeInvoiceToExcel(InvoiceVO invoiceVO, String templatePath, String outputPath) throws IOException {
         // 加载模板
