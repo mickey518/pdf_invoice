@@ -3,6 +3,7 @@ package lab.dragon.invoice.utils;
 public class AmountToChinese {
     private static final String[] NUMBERS = {"零", "壹", "贰", "叁", "肆", "伍", "陆", "柒", "捌", "玖"};
     private static final String[] UNITS = {"仟", "佰", "拾"};
+    private static final String YUAN = "圆";
 
     public static String numberToChinese(String amount) {
         if (amount == null || amount.isEmpty()) {
@@ -13,6 +14,10 @@ public class AmountToChinese {
         String[] parts = amount.split("\\.");
         String integerPart = parts[0];
         String decimalPart = parts.length > 1 ? parts[1] : "";
+        // 判断小数部分是不是都是 0
+        if (isAllZeros(decimalPart)) {
+            decimalPart = "";
+        }
 
         // 处理整数部分
         StringBuilder chineseInteger = new StringBuilder();
@@ -26,9 +31,9 @@ public class AmountToChinese {
         }
 
         if ("".equals(decimalPart)) {
-            chineseInteger.append("元整");
+            chineseInteger.append(YUAN + "整");
         } else {
-            chineseInteger.append("元");
+            chineseInteger.append(YUAN);
         }
         // 处理小数部分
         String chineseDecimal = convertDecimal(decimalPart);
@@ -97,5 +102,12 @@ public class AmountToChinese {
             }
         }
         return result.toString();
+    }
+
+    public static boolean isAllZeros(String decimalPart) {
+        if (decimalPart == null || decimalPart.isEmpty()) {
+            return false; // 根据需求定义空字符串的处理
+        }
+        return decimalPart.matches("0+"); // 匹配一个或多个 0
     }
 }
