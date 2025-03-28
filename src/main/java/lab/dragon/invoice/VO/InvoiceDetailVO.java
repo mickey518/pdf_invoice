@@ -10,35 +10,21 @@ package lab.dragon.invoice.VO;
  * 税额
  */
 public class InvoiceDetailVO {
-    /**
-     * 序号，从 1 开始
-     */
-    private int index;
-    private String name; //货物或应税劳务、服务名称
-    private String model; // 规格型号
-    private String unit; //单位
-    private String count; //数量:
-    private String price; //单价:
-    private String amount; //金额:
-    private String taxRate; // 税率:
-    private String taxAmount; // 税额:
-    // 单项总价 = 金额 + 税额
-    private String totalAmount;
+    private int index;              // 序号，从 1 开始
+    private String name;            //货物或应税劳务、服务名称
+    private String model;           // 规格型号
+    private String unit;            //单位
+    private String count;           //数量:
+    private String price;           //单价:
+    private String amount;          //金额:
+    private String taxRate;         // 税率:
+    private String taxAmount;       // 税额:
+    private String totalAmount;     // 单项总价 = 金额 + 税额
+    private String remark;          // 备注
 
     @Override
     public String toString() {
-        return "InvoiceDetailVO{" +
-                "index=" + index + '\'' +
-                "name='" + name + '\'' +
-                ", model='" + model + '\'' +
-                ", unit='" + unit + '\'' +
-                ", count='" + count + '\'' +
-                ", price='" + price + '\'' +
-                ", amount='" + amount + '\'' +
-                ", taxRate='" + taxRate + '\'' +
-                ", taxAmount='" + taxAmount + '\'' +
-                ", totalAmount='" + totalAmount + '\'' +
-                '}';
+        return "InvoiceDetailVO{" + "index=" + index + '\'' + "name='" + name + '\'' + ", model='" + model + '\'' + ", unit='" + unit + '\'' + ", count='" + count + '\'' + ", price='" + price + '\'' + ", amount='" + amount + '\'' + ", taxRate='" + taxRate + '\'' + ", taxAmount='" + taxAmount + '\'' + ", totalAmount='" + totalAmount + '\'' + ", remark='" + remark + '\'' + '}';
     }
 
     public int getIndex() {
@@ -119,5 +105,13 @@ public class InvoiceDetailVO {
 
     public void setTotalAmount(String totalAmount) {
         this.totalAmount = totalAmount;
+    }
+
+    public String getRemark() {
+        return remark;
+    }
+
+    public void setRemark(String remark) {
+        this.remark = remark;
     }
 }

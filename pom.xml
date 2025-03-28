@@ -6,7 +6,7 @@
 
     <groupId>lab.dragon</groupId>
     <artifactId>invoice</artifactId>
-    <version>1.0.0</version>
+    <version>1.0.1</version>
 
     <properties>
         <spring.boot.version>2.7.18</spring.boot.version>
@@ -107,6 +107,7 @@
             </plugin>
             <plugin>
                 <artifactId>maven-compiler-plugin</artifactId>
+                <version>3.8.1</version>
                 <configuration>
                     <source>11</source>
                     <target>11</target>

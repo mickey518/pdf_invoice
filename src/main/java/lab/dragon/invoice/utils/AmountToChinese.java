@@ -3,7 +3,7 @@ package lab.dragon.invoice.utils;
 public class AmountToChinese {
     private static final String[] NUMBERS = {"零", "壹", "贰", "叁", "肆", "伍", "陆", "柒", "捌", "玖"};
     private static final String[] UNITS = {"仟", "佰", "拾"};
-    private static final String YUAN = "圆";
+    private static final String YUAN = "元";
 
     public static String numberToChinese(String amount) {
         if (amount == null || amount.isEmpty()) {

@@ -43,11 +43,11 @@ public class InvoiceExportController {
 
         // 定义需要的 3 个模板文件名
         String[] templates = new String[] {
-            "inventory_template.xlsx", "inventory_template_1.xlsx","inventory_template_2.xlsx"
+            "inventory_template_0.xlsx", "inventory_template_1.xlsx","inventory_template_2.xlsx"
         };
         // 定义需要的 3 个模板文件类型
         String[] outputTypes = new String[] {
-                 "入库单（仓库联）", "入库单（财务记账联）", "出库单"
+                "入库单（财务记账联）", "入库单（仓库联）", "出库单"
         };
         String[] results = new String[templates.length];
 
@@ -65,11 +65,14 @@ public class InvoiceExportController {
             }
         }
 
-        String string = zipFiles(results);
+        String mergeName = Paths.get(dataFolder,  String.format("%s-%s.xlsx", dateString, "仓库联-合并")).toString();
+        excelService.merge(mergeName, results[1], results[2]);
+
+        String string = zipFiles(results[0], mergeName);
         return exportUrl + string;
     }
 
-    private String zipFiles(String[] fileNames) {
+    private String zipFiles(String... fileNames) {
         String dateString = DateUtil.getDateFormat(DateUtil.FILE_NAME_FORMAT_STRING).format(new Date());
 
         String zipFilePath = Paths.get(dataFolder,  dateString + "-发票识别导出.zip").toString();
