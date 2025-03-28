@@ -2,7 +2,6 @@ package lab.dragon.invoice.service;
 
 import lab.dragon.invoice.entity.Invoice;
 import lab.dragon.invoice.utils.StringUtils;
-import org.apache.pdfbox.Loader;
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.pdmodel.PDPage;
 import org.apache.pdfbox.text.PDFTextStripper;
@@ -31,7 +30,7 @@ public class PdfInvoiceExtractor {
      */
     public static Invoice extract(File file) throws IOException {
         // 获取PDF文档
-        PDDocument doc = Loader.loadPDF(file);
+        PDDocument doc = PDDocument.load(file);
         // 获取第一页
         PDPage firstPage = doc.getPage(0);
         // 获取第一页的宽度

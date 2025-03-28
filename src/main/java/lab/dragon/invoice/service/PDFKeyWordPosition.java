@@ -4,6 +4,8 @@ import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.text.PDFTextStripper;
 import org.apache.pdfbox.text.TextPosition;
 import lab.dragon.invoice.utils.CollectionUtil;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -15,6 +17,7 @@ import java.util.Map;
 
 public class PDFKeyWordPosition extends PDFTextStripper {
 
+    private static final Logger log = LoggerFactory.getLogger(PDFKeyWordPosition.class);
     private List<String> keywordList;
     private Map<String, List<Position>> positionListMap;
 

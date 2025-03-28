@@ -1,55 +1,85 @@
 package lab.dragon.invoice;
 
-import org.apache.pdfbox.Loader;
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.pdmodel.PDPage;
-import org.apache.pdfbox.pdmodel.PDPageContentStream;
-import org.apache.pdfbox.pdmodel.graphics.state.PDExtendedGraphicsState;
+import org.apache.pdfbox.text.PDFTextStripperByArea;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
+import java.awt.geom.Point2D;
+import java.awt.geom.Rectangle2D;
 import java.io.File;
 import java.io.IOException;
+import java.util.List;
 
 /**
  * @author mickey.wang
  */
 public class PDFBoxRegionDemo {
 
+    private static final Logger log = LoggerFactory.getLogger(PDFBoxRegionDemo.class);
+
     public static void main(String[] args) {
+        // "032002300811_33196780_浙江大学.pdf",
+//        "鹏睿康_浙江大学_20250214-1.pdf",
+//        "海富睿_浙江大学_20250218-2.pdf",
+//                "dzfp_25932000000012918560_浙江大学_20250219093026.pdf"
+
+        String[] filePaths = new String[] {
+                "032002300811_33196780_浙江大学.pdf"
+        };
 
         try {
-            draw();
+            for (String filePath : filePaths) {
+                read(filePath);
+            }
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
     }
 
-    private static void draw() throws IOException {
-        // 获取PDF文档
-        PDDocument doc = Loader.loadPDF(new File("02-28-18-32-540458.pdf"));
-        // 获取第一页
-        PDPage firstPage = doc.getPage(0);
+    private static void read(String pdfPath) throws IOException {
 
-        // 创建一个图形状态对象
-        PDExtendedGraphicsState graphicsState = new PDExtendedGraphicsState();
-        graphicsState.setLineWidth(1.0f); // 设置线宽为1.0
+        PDDocument document = PDDocument.load(new File(pdfPath));
 
-        // 创建内容流对象
-        try (PDPageContentStream contentStream = new PDPageContentStream(doc, firstPage, PDPageContentStream.AppendMode.APPEND, false)) {
-            // 设置线条颜色为黄色 (RGB: 1, 1, 0)
-            contentStream.setStrokingColor( 0, 0, 0);  // 黄色
-            contentStream.setLineWidth(1.0f); // 设置线宽为1.0
+        for (PDPage page : document.getPages()) {
+            float height;
+            // 获取 MediaBox（页面完整区域）
+            org.apache.pdfbox.cos.COSArray mediaBox = (org.apache.pdfbox.cos.COSArray) page.getCOSObject().getDictionaryObject("MediaBox");
+            float[] mediaBoxArray = mediaBox.toFloatArray();
 
-            // 绘制矩形 (x, y, width, height)
-            contentStream.addRect(0, 163, 595, 591); // 绘制一个 100x50 的矩形，位于 (10, 10)
-            contentStream.stroke(); // 确保调用 stroke() 来渲染矩形边框
+            height = mediaBoxArray[3] - mediaBoxArray[1];
 
-            // 如果想填充矩形的话，使用 fill()
-            // contentStream.fill(); // 填充矩形，默认填充黑色
+            RectangleExtractor extractor = new RectangleExtractor(page);
+            extractor.processPage(page);
 
+            List<Rectangle2D> rectangles = extractor.getRectangles();
+            for (int i = 0; i < rectangles.size(); i++) {
+                log.info("rect [i]: {}, rect: {}", i, rectangles.get(i));
+            }
+
+            for (Rectangle2D rect : rectangles) {
+                Rectangle2D rectangle2D = new Rectangle2D.Float((float) rect.getX(), height - (float) rect.getY() - (float) rect.getHeight(), (float) rect.getWidth(), (float) rect.getHeight());
+
+                PDFTextStripperByArea stripper = new PDFTextStripperByArea();
+                stripper.setSortByPosition(true);
+
+                stripper.addRegion("RECTANGLE_0", rectangle2D);
+                stripper.extractRegions(page);
+
+                String[] strings = stripper.getTextForRegion("RECTANGLE_0").replaceAll("　", " ").replaceAll(" ", " ")
+                        .replaceAll("\r", "").split("\\n");
+                System.out.println("-------------------------------------------------");
+
+                for (int i = 0; i < strings.length; i++) {
+                    System.out.printf("RECTANGLE_0; i: %s, item: %s \n", i, strings[i]);
+                }
+                System.out.println("-------------------------------------------------");
+
+            }
         }
 
-        // 保存修改后的 PDF 文档
-        doc.save("result2.pdf");
-        doc.close();
+
+        document.close();
     }
 }
