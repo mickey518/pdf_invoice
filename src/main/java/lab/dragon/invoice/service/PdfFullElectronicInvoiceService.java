@@ -52,10 +52,8 @@ public class PdfFullElectronicInvoiceService {
 
         // 将 allText 按照 “电子发票” 分割
         String[] texts = allText.split("电子发票");
-
-        Invoice invoice = extractFirstPage("电子发票" + texts[1], fullText, doc, doc.getPage(0));
-//        Invoice invoice2 = extractFirstPage("电子发票" + texts[2], fullText, doc, doc.getPage(1));
-//        log.info("invoice 2: {}", invoice2);
+        log.info("texts: length: {}, 0: {}", texts.length, texts[0]);
+        Invoice invoice = extractFirstPage("电子发票" + (texts.length > 1 ? texts[1] : texts[0]), fullText, doc, doc.getPage(0));
         return invoice;
     }
 
@@ -195,7 +193,7 @@ public class PdfFullElectronicInvoiceService {
             int x = 0;
             int y = (int) taxRatePos.getY() + 5;
             if (modelPos != null) {
-                x = (int) (modelPos.getX() -13); // 假设x坐标在关键字右侧50单位
+                x = (int) (modelPos.getX() -6); // 假设x坐标在关键字右侧50单位
             }
 
             int height = detailHeight > 0 ? detailHeight : 20;
@@ -282,9 +280,7 @@ public class PdfFullElectronicInvoiceService {
             String[] detailStringArray = lab.dragon.invoice.utils.StringUtils.replace(detailStripper.getTextForRegion("detail")).replaceAll("\r", "").split("\\n");
             int i = 0, j = 0, h = 0, m = 0;
             InvoiceDetail lastInvoiceDetail = null;
-            log.info("detailNameStringArray length: {}", detailNameStringArray.length);
 
-            log.info("detailStringArray length: {}", detailStringArray.length);
             for (String detailString : detailStringArray) {
                 if (m < detailNameStringArray.length) {
                     if (detailString.matches("\\S+\\d*(%|免税|不征税|出口零税率|普通零税率)\\S*")
