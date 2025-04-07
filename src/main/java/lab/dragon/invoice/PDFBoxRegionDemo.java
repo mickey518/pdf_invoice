@@ -23,9 +23,10 @@ public class PDFBoxRegionDemo {
 //        "鹏睿康_浙江大学_20250214-1.pdf",
 //        "海富睿_浙江大学_20250218-2.pdf",
 //                "dzfp_25932000000012918560_浙江大学_20250219093026.pdf"
+        //_浙江大学_20250224190505.pdf
 
         String[] filePaths = new String[]{
-                "./test-data/032002300811_33196780_浙江大学.pdf"
+                "./test-data/_浙江大学_20250224190505.pdf"
         };
 
         try {
@@ -50,6 +51,7 @@ public class PDFBoxRegionDemo {
             RectangleExtractor extractor = new RectangleExtractor(page);
             extractor.processPage(page);
 
+            log.info("页面总大小：{}x{}", pageWidth, pageHeight);
             List<Rectangle2D> rectangles = extractor.getRectangles();
             for (int i = 0; i < rectangles.size(); i++) {
                 log.debug("rect [i]: {}, rect: {}", i, rectangles.get(i));

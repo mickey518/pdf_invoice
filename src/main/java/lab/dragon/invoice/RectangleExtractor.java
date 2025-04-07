@@ -1,5 +1,6 @@
 package lab.dragon.invoice;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.pdfbox.contentstream.PDFGraphicsStreamEngine;
 import org.apache.pdfbox.cos.COSName;
 import org.apache.pdfbox.pdmodel.PDPage;
@@ -50,8 +51,11 @@ public class RectangleExtractor extends PDFGraphicsStreamEngine {
      * @return 矩形列表的副本
      */
     public List<Rectangle2D> getRectangles() {
-        rectangles.sort(Comparator.comparingDouble(Rectangle2D::getX)
-                .thenComparingDouble(Rectangle2D::getY));
+        rectangles.sort(Comparator.comparingDouble(Rectangle2D::getHeight).reversed()
+                .thenComparingDouble(Rectangle2D::getWidth)
+                .thenComparingDouble(Rectangle2D::getY)
+                .thenComparingDouble(Rectangle2D::getX)
+        );
         return new ArrayList<>(rectangles);
     }
 
@@ -63,11 +67,6 @@ public class RectangleExtractor extends PDFGraphicsStreamEngine {
     public Rectangle2D getOuterRectangle() {
         if (rectangles.isEmpty()) return null;
         Rectangle2D outer = rectangles.get(0);
-//        for (Rectangle2D rect : rectangles) {
-//            if (Math.abs(rect.getX()) > tolerance && Math.abs(rect.getY()) > tolerance) {
-//                outer = outer.createUnion(rect);
-//            }
-//        }
         if (Math.abs(outer.getX()) <= tolerance || Math.abs(outer.getY()) <= tolerance) {
             log.warn("Outer rectangle has x or y as 0, returning null: x={}, y={}", outer.getX(), outer.getY());
             return null;
@@ -125,12 +124,12 @@ public class RectangleExtractor extends PDFGraphicsStreamEngine {
 
     @Override
     public void fillPath(int windingRule) throws IOException {
-        log.debug("FillPath detected");
+        log.debug("FillPath detected: {}", windingRule);
     }
 
     @Override
     public void fillAndStrokePath(int windingRule) throws IOException {
-        log.debug("FillAndStrokePath detected");
+        log.debug("FillAndStrokePath detected: {}", windingRule);
     }
 
     @Override
@@ -274,6 +273,13 @@ public class RectangleExtractor extends PDFGraphicsStreamEngine {
         List<Point2D[]> targetHorizontalLines = new ArrayList<>(horizontalLines);
         List<Point2D[]> targetVerticalLines = new ArrayList<>(verticalLines);
 
+        try {
+            log.info("HorizontalLines: {}", new ObjectMapper().writeValueAsString(targetHorizontalLines));
+            log.info("VerticalLines: {}", new ObjectMapper().writeValueAsString(targetVerticalLines));
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
         if (targetHorizontalLines.size() < 2 || targetVerticalLines.size() < 2) {
             log.warn("Not enough lines to form rectangles after filtering. Horizontal: {}, Vertical: {}",
                     targetHorizontalLines.size(), targetVerticalLines.size());
@@ -306,7 +312,7 @@ public class RectangleExtractor extends PDFGraphicsStreamEngine {
         }
 
         Rectangle2D outerRect = new Rectangle2D.Double(minX, minY, maxX - minX, maxY - minY);
-        if (Math.abs(outerRect.getX()) > tolerance && Math.abs(outerRect.getY()) > tolerance) {
+        if (Math.abs(outerRect.getX()) > tolerance && Math.abs(outerRect.getY()) > tolerance && Math.abs(outerRect.getWidth()) > tolerance && Math.abs(outerRect.getHeight()) > tolerance) {
             if (!rectangles.contains(outerRect)) {
                 rectangles.add(outerRect);
                 log.info("Outer rectangle: x={}, y={}, w={}, h={}", outerRect.getX(), outerRect.getY(), outerRect.getWidth(), outerRect.getHeight());
