@@ -49,7 +49,7 @@ public final class ExcelService {
             Font headerFont = workbook.createFont();
             headerFont.setFontName("宋体");
             // 设置字体大小（单位：点）
-            headerFont.setFontHeightInPoints((short) 12);
+            headerFont.setFontHeightInPoints((short) 10);
 
             // 创建单元格样式并应用字体
             CellStyle headerStyle = workbook.createCellStyle();
